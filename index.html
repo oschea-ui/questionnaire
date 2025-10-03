@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personality Questionnaire</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="welcome-screen" class="screen active">
+            <h1 class="title">Personality Questionnaire</h1>
+            <p class="subtitle">Answer 15 questions to discover your strengths</p>
+            <button id="start-btn" class="btn">Start Survey</button>
+        </div>
+
+        <div id="question-screen" class="screen">
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <h2 id="question-text" class="question-text"></h2>
+            <div id="answers" class="answers"></div>
+            <div class="question-counter">
+                <span id="current-question">1</span> / <span id="total-questions">15</span>
+            </div>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <h1 class="title">Your Results</h1>
+            <div id="results-container" class="results-container"></div>
+            <button id="restart-btn" class="btn">Start New Survey</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "How comfortable are you speaking in front of a large group?",
+                category: "charisma",
+                answers: [
+                    { text: "Very uncomfortable", score: 1 },
+                    { text: "Somewhat uncomfortable", score: 2 },
+                    { text: "Neutral", score: 3 },
+                    { text: "Somewhat comfortable", score: 4 },
+                    { text: "Very comfortable", score: 5 }
+                ]
+            },
+            {
+                question: "How often do you enjoy solving complex puzzles or problems?",
+                category: "intelligence",
+                answers: [
+                    { text: "Never", score: 1 },
+                    { text: "Rarely", score: 2 },
+                    { text: "Sometimes", score: 3 },
+                    { text: "Often", score: 4 },
+                    { text: "Always", score: 5 }
+                ]
+            },
+            {
+                question: "When faced with obstacles, how persistent are you?",
+                category: "determination",
+                answers: [
+                    { text: "I give up easily", score: 1 },
+                    { text: "I try a few times", score: 2 },
+                    { text: "I'm moderately persistent", score: 3 },
+                    { text: "I keep trying", score: 4 },
+                    { text: "I never give up", score: 5 }
+                ]
+            },
+            {
+                question: "How often do people look to you for direction?",
+                category: "leadership",
+                answers: [
+                    { text: "Never", score: 1 },
+                    { text: "Rarely", score: 2 },
+                    { text: "Sometimes", score: 3 },
+                    { text: "Often", score: 4 },
+                    { text: "Always", score: 5 }
+                ]
+            },
+            {
+                question: "How frequently do you come up with original ideas?",
+                category: "creativity",
+                answers: [
+                    { text: "Never", score: 1 },
+                    { text: "Rarely", score: 2 },
+                    { text: "Sometimes", score: 3 },
+                    { text: "Often", score: 4 },
+                    { text: "Always", score: 5 }
+                ]
+            },
+            {
+                question: "How well can you analyze arguments and find flaws?",
+                category: "critical_thinking",
+                answers: [
+                    { text: "Not well at all", score: 1 },
+                    { text: "Somewhat poorly", score: 2 },
+                    { text: "Average", score: 3 },
+                    { text: "Pretty well", score: 4 },
+                    { text: "Extremely well", score: 5 }
+                ]
+            },
+            {
+                question: "How aware are you of others' emotional states?",
+                category: "emotional_intelligence",
+                answers: [
+                    { text: "Not aware at all", score: 1 },
+                    { text: "Slightly aware", score: 2 },
+                    { text: "Moderately aware", score: 3 },
+                    { text: "Very aware", score: 4 },
+                    { text: "Extremely aware", score: 5 }
+                ]
+            },
+            {
+                question: "How easily can you make people feel at ease around you?",
+                category: "charisma",
+                answers: [
+                    { text: "Very difficult", score: 1 },
+                    { text: "Difficult", score: 2 },
+                    { text: "Neutral", score: 3 },
+                    { text: "Easy", score: 4 },
+                    { text: "Very easy", score: 5 }
+                ]
+            },
+            {
+                question: "How quickly can you learn new concepts?",
+                category: "intelligence",
+                answers: [
+                    { text: "Very slowly", score: 1 },
+                    { text: "Slowly", score: 2 },
+                    { text: "Average pace", score: 3 },
+                    { text: "Quickly", score: 4 },
+                    { text: "Very quickly", score: 5 }
+                ]
+            },
+            {
+                question: "How long can you work on a challenging project without getting discouraged?",
+                category: "determination",
+                answers: [
+                    { text: "Less than a day", score: 1 },
+                    { text: "A few days", score: 2 },
+                    { text: "A week or two", score: 3 },
+                    { text: "Several weeks", score: 4 },
+                    { text: "As long as it takes", score: 5 }
+                ]
+            },
+            {
+                question: "How comfortable are you making important decisions for a team?",
+                category: "leadership",
+                answers: [
+                    { text: "Very uncomfortable", score: 1 },
+                    { text: "Uncomfortable", score: 2 },
+                    { text: "Neutral", score: 3 },
+                    { text: "Comfortable", score: 4 },
+                    { text: "Very comfortable", score: 5 }
+                ]
+            },
+            {
+                question: "How often do you think outside the box?",
+                category: "creativity",
+                answers: [
+                    { text: "Never", score: 1 },
+                    { text: "Rarely", score: 2 },
+                    { text: "Sometimes", score: 3 },
+                    { text: "Often", score: 4 },
+                    { text: "Always", score: 5 }
+                ]
+            },
+            {
+                question: "How good are you at evaluating evidence before making a conclusion?",
+                category: "critical_thinking",
+                answers: [
+                    { text: "Poor", score: 1 },
+                    { text: "Below average", score: 2 },
+                    { text: "Average", score: 3 },
+                    { text: "Above average", score: 4 },
+                    { text: "Excellent", score: 5 }
+                ]
+            },
+            {
+                question: "How well can you manage your own emotions during stressful situations?",
+                category: "emotional_intelligence",
+                answers: [
+                    { text: "Very poorly", score: 1 },
+                    { text: "Poorly", score: 2 },
+                    { text: "Average", score: 3 },
+                    { text: "Well", score: 4 },
+                    { text: "Very well", score: 5 }
+                ]
+            },
+            {
+                question: "How effectively can you motivate and inspire others?",
+                category: "leadership",
+                answers: [
+                    { text: "Not effectively at all", score: 1 },
+                    { text: "Slightly effective", score: 2 },
+                    { text: "Moderately effective", score: 3 },
+                    { text: "Very effective", score: 4 },
+                    { text: "Extremely effective", score: 5 }
+                ]
+            }
+        ];
+
+        const categoryNames = {
+            charisma: "Charisma",
+            intelligence: "Intelligence",
+            determination: "Determination",
+            leadership: "Leadership",
+            creativity: "Creativity",
+            critical_thinking: "Critical Thinking",
+            emotional_intelligence: "Emotional Intelligence"
+        };
+
+        let currentQuestion = 0;
+        let scores = {
+            charisma: 0,
+            intelligence: 0,
+            determination: 0,
+            leadership: 0,
+            creativity: 0,
+            critical_thinking: 0,
+            emotional_intelligence: 0
+        };
+
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionText = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers');
+        const progressFill = document.getElementById('progress-fill');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const resultsContainer = document.getElementById('results-container');
+
+        startBtn.addEventListener('click', startSurvey);
+        restartBtn.addEventListener('click', restartSurvey);
+
+        function startSurvey() {
+            welcomeScreen.classList.remove('active');
+            questionScreen.classList.add('active');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            questionText.textContent = question.question;
+            answersContainer.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = answer.text;
+                button.addEventListener('click', () => selectAnswer(answer.score, question.category));
+                answersContainer.appendChild(button);
+            });
+
+            currentQuestionSpan.textContent = currentQuestion + 1;
+            totalQuestionsSpan.textContent = questions.length;
+            updateProgress();
+        }
+
+        function selectAnswer(score, category) {
+            scores[category] += score;
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion) / questions.length) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        function showResults() {
+            questionScreen.classList.remove('active');
+            resultScreen.classList.add('active');
+
+            // Calculate percentages and create results
+            const maxScore = {};
+            const percentages = {};
+            
+            // Count questions per category
+            questions.forEach(q => {
+                maxScore[q.category] = (maxScore[q.category] || 0) + 5;
+            });
+
+            // Calculate percentages
+            for (let category in scores) {
+                percentages[category] = Math.round((scores[category] / maxScore[category]) * 100);
+            }
+
+            // Sort categories by score
+            const sortedCategories = Object.entries(percentages).sort((a, b) => b[1] - a[1]);
+
+            // Display results
+            resultsContainer.innerHTML = '';
+            sortedCategories.forEach(([category, percentage], index) => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                
+                const categoryLabel = document.createElement('div');
+                categoryLabel.className = 'category-label';
+                categoryLabel.innerHTML = `<span class="rank">#${index + 1}</span> ${categoryNames[category]}`;
+                
+                const barContainer = document.createElement('div');
+                barContainer.className = 'bar-container';
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.width = percentage + '%';
+                
+                const percentageLabel = document.createElement('span');
+                percentageLabel.className = 'percentage';
+                percentageLabel.textContent = percentage + '%';
+                
+                barContainer.appendChild(bar);
+                resultItem.appendChild(categoryLabel);
+                resultItem.appendChild(barContainer);
+                resultItem.appendChild(percentageLabel);
+                
+                resultsContainer.appendChild(resultItem);
+            });
+        }
+
+        function restartSurvey() {
+            currentQuestion = 0;
+            scores = {
+                charisma: 0,
+                intelligence: 0,
+                determination: 0,
+                leadership: 0,
+                creativity: 0,
+                critical_thinking: 0,
+                emotional_intelligence: 0
+            };
+            resultScreen.classList.remove('active');
+            welcomeScreen.classList.add('active');
+            progressFill.style.width = '0%';
+        }
+
+        totalQuestionsSpan.textContent = questions.length;
+    </script>
+</body>
+</html>
