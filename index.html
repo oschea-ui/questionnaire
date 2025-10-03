@@ -304,26 +304,39 @@ function renderQuestionnaire(state) {
   };
 }
 
+// NEW: Normalize results so total = 100%
 function calculateTotals(answers) {
   // Initialize
   const totals = {};
-  const maxes = {};
   Object.keys(attrKeyMap).forEach(k => {
     totals[k] = 0;
-    maxes[k] = 0;
   });
   questions.forEach((q, i) => {
     Object.entries(q.map).forEach(([attr, weight]) => {
       totals[attr] += (answers[i] ?? 0) * weight;
-      maxes[attr] += 4 * weight; // 4 is max answer
     });
   });
-  // Compute percentages
-  const results = {};
+  // Normalize
+  const sum = Object.values(totals).reduce((a, b) => a + b, 0) || 1;
+  const normResults = {};
   Object.keys(attrKeyMap).forEach(k => {
-    results[k] = Math.round((totals[k] / (maxes[k] || 1)) * 100);
+    normResults[k] = Math.round((totals[k] / sum) * 100);
   });
-  return results;
+
+  // Adjustment for rounding: ensure sum is 100%
+  const percents = Object.keys(attrKeyMap).map(k => normResults[k]);
+  const percentSum = percents.reduce((a, b) => a + b, 0);
+  let diff = 100 - percentSum;
+  // Distribute the difference (if any)
+  if (diff !== 0) {
+    // Sort attributes by their raw total descending
+    const sorted = Object.keys(attrKeyMap).sort((a, b) => totals[b] - totals[a]);
+    for (let i = 0; i < Math.abs(diff); i++) {
+      const key = sorted[i % sorted.length];
+      normResults[key] += diff > 0 ? 1 : -1;
+    }
+  }
+  return normResults;
 }
 
 function renderResults(answers) {
@@ -343,6 +356,7 @@ function renderResults(answers) {
   });
   html += `</div>
     <button class="retake-btn" id="retake">Retake Survey</button>
+    <div style="margin-top:1em;font-size:0.93em;color:#888;text-align:center;">(All attributes total 100%)</div>
   `;
   document.getElementById("app").innerHTML = html;
   // Animate bars
@@ -366,7 +380,7 @@ function startSurvey() {
 
 // Initial render
 document.getElementById("app").innerHTML = `<h1>Attribute Survey</h1>
-  <div style="text-align:center;margin-bottom:1.5em;">Take this 15-question quiz to see your game-like stat bars in <strong>Charisma, Intelligence, Determination, Leadership, Creativity, Critical Thinking, and Emotional Intelligence</strong>!</div>
+  <div style="text-align:center;margin-bottom:1.5em;">Take this 15-question quiz to see your game-like stat bars in <strong>Charisma, Intelligence, Determination, Leadership, Creativity, Critical Thinking, and Emotional Intelligence</strong>!<br><br><span style="color:#888;font-size:0.96em;">(Final attributes always add up to 100%)</span></div>
   <button class="retake-btn" id="start">Start Survey</button>
 `;
 document.getElementById("start").onclick = startSurvey;
