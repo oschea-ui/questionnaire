@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attribute Survey Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --primary: #393d3f;
+      --secondary: #f6f7eb;
+      --accent: #44bba4;
+      --bar-bg: #cccccc;
+      --bar-fill: #44bba4;
+      --bar-height: 30px;
+      --radius: 10px;
+      --spacer: 1.25rem;
+    }
+    body {
+      background: var(--secondary);
+      color: var(--primary);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #app {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 16px rgba(57,61,63,0.1);
+      max-width: 420px;
+      width: 100%;
+      padding: 2rem;
+      margin: var(--spacer);
+    }
+    .question-count {
+      font-size: 0.95em;
+      color: #888;
+      margin-bottom: 0.5em;
+    }
+    h1 {
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 0.5em;
+    }
+    h2 {
+      color: var(--primary);
+      text-align: center;
+      margin: 0.5em 0;
+    }
+    .question {
+      font-size: 1.12em;
+      margin-bottom: var(--spacer);
+      text-align: center;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      margin-bottom: var(--spacer);
+      align-items: center;
+    }
+    .option-btn {
+      background: var(--bar-bg);
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.8em 1.7em;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: var(--primary);
+      width: 100%;
+      max-width: 320px;
+    }
+    .option-btn.selected, .option-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+    .nav-btns {
+      display: flex;
+      justify-content: space-between;
+      gap: 1em;
+    }
+    .nav-btns button {
+      flex: 1;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.7em 0;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 0.5em;
+      transition: background 0.15s;
+    }
+    .nav-btns button:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+    }
+    .results {
+      margin-top: 1em;
+      display: flex;
+      flex-direction: column;
+      gap: 1.3em;
+    }
+    .attr-label {
+      font-weight: bold;
+      margin-bottom: 0.2em;
+      font-size: 1em;
+      letter-spacing: 1px;
+    }
+    .bar-bg {
+      background: var(--bar-bg);
+      border-radius: var(--radius);
+      height: var(--bar-height);
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill {
+      background: var(--bar-fill);
+      height: 100%;
+      border-radius: var(--radius);
+      transition: width 0.8s cubic-bezier(.6,1.7,.5,1);
+      width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      color: white;
+      font-weight: bold;
+      font-size: 1em;
+      padding-right: 0.7em;
+      box-sizing: border-box;
+      min-width: 2.5em;
+    }
+    .retake-btn {
+      display: block;
+      margin: 2em auto 0 auto;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.9em 2.2em;
+      font-size: 1.15em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .retake-btn:hover {
+      background: #38857e;
+    }
+    @media (max-width: 480px) {
+      #app {
+        padding: 1em 0.3em;
+      }
+      .option-btn {
+        font-size: 0.96em;
+        padding: 0.6em 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+const attributes = [
+  "Charisma",
+  "Intelligence",
+  "Determination",
+  "Leadership",
+  "Creativity",
+  "Critical Thinking",
+  "Emotional Intelligence"
+];
+
+// Each question maps to one or more attributes. Each answer is 0-4.
+const questions = [
+  {
+    text: "I enjoy starting conversations and meeting new people.",
+    map: { Charisma: 1 }
+  },
+  {
+    text: "I can easily come up with creative ideas to solve problems.",
+    map: { Creativity: 1, Intelligence: 0.5 }
+  },
+  {
+    text: "I persist even when tasks become very challenging.",
+    map: { Determination: 1 }
+  },
+  {
+    text: "I often guide or motivate others in group settings.",
+    map: { Leadership: 1, Charisma: 0.5 }
+  },
+  {
+    text: "I analyze situations carefully before making decisions.",
+    map: { CriticalThinking: 1 }
+  },
+  {
+    text: "I am comfortable expressing my feelings and understanding others'.",
+    map: { EmotionalIntelligence: 1 }
+  },
+  {
+    text: "I excel at learning new concepts and skills.",
+    map: { Intelligence: 1 }
+  },
+  {
+    text: "I can persuade others to see my point of view.",
+    map: { Charisma: 0.7, Leadership: 0.3 }
+  },
+  {
+    text: "I adapt quickly when plans change unexpectedly.",
+    map: { Creativity: 0.6, EmotionalIntelligence: 0.7 }
+  },
+  {
+    text: "I set ambitious goals and work hard to achieve them.",
+    map: { Determination: 1, Leadership: 0.4 }
+  },
+  {
+    text: "I approach problems logically and systematically.",
+    map: { CriticalThinking: 1, Intelligence: 0.5 }
+  },
+  {
+    text: "I inspire others to do their best.",
+    map: { Leadership: 1, Charisma: 0.6 }
+  },
+  {
+    text: "I look for unique solutions rather than following the crowd.",
+    map: { Creativity: 1, CriticalThinking: 0.5 }
+  },
+  {
+    text: "I notice how others feel even when they don't say anything.",
+    map: { EmotionalIntelligence: 1, Charisma: 0.4 }
+  },
+  {
+    text: "I enjoy solving puzzles and complex challenges.",
+    map: { Intelligence: 1, CriticalThinking: 0.7 }
+  }
+];
+
+const optionLabels = [
+  "Strongly Disagree",
+  "Disagree",
+  "Neutral",
+  "Agree",
+  "Strongly Agree"
+];
+
+const attrKeyMap = {
+  Charisma: "Charisma",
+  Intelligence: "Intelligence",
+  Determination: "Determination",
+  Leadership: "Leadership",
+  Creativity: "Creativity",
+  CriticalThinking: "Critical Thinking",
+  EmotionalIntelligence: "Emotional Intelligence"
+};
+
+function getInitialAnswers() {
+  return Array(questions.length).fill(null);
+}
+
+function renderQuestionnaire(state) {
+  const { current, answers } = state;
+  const q = questions[current];
+  const progress = `${current + 1} / ${questions.length}`;
+  let html = `
+    <div class="question-count">Question ${progress}</div>
+    <div class="question">${q.text}</div>
+    <div class="options">
+  `;
+  optionLabels.forEach((lbl, idx) => {
+    const selected = answers[current] === idx ? "selected" : "";
+    html += `<button class="option-btn ${selected}" data-idx="${idx}">${lbl}</button>`;
+  });
+  html += `</div>
+    <div class="nav-btns">
+      <button id="back" ${current === 0 ? "disabled" : ""}>Back</button>
+      <button id="next" ${answers[current] === null ? "disabled" : ""}>${current === questions.length - 1 ? "Finish" : "Next"}</button>
+    </div>
+  `;
+  document.getElementById("app").innerHTML = html;
+  // Option btns
+  Array.from(document.getElementsByClassName("option-btn")).forEach(btn => {
+    btn.onclick = () => {
+      state.answers[current] = parseInt(btn.getAttribute("data-idx"));
+      renderQuestionnaire(state);
+    };
+  });
+  document.getElementById("back").onclick = () => {
+    if (current > 0) {
+      state.current--;
+      renderQuestionnaire(state);
+    }
+  };
+  document.getElementById("next").onclick = () => {
+    if (answers[current] !== null) {
+      if (current < questions.length - 1) {
+        state.current++;
+        renderQuestionnaire(state);
+      } else {
+        renderResults(state.answers);
+      }
+    }
+  };
+}
+
+function calculateTotals(answers) {
+  // Initialize
+  const totals = {};
+  const maxes = {};
+  Object.keys(attrKeyMap).forEach(k => {
+    totals[k] = 0;
+    maxes[k] = 0;
+  });
+  questions.forEach((q, i) => {
+    Object.entries(q.map).forEach(([attr, weight]) => {
+      totals[attr] += (answers[i] ?? 0) * weight;
+      maxes[attr] += 4 * weight; // 4 is max answer
+    });
+  });
+  // Compute percentages
+  const results = {};
+  Object.keys(attrKeyMap).forEach(k => {
+    results[k] = Math.round((totals[k] / (maxes[k] || 1)) * 100);
+  });
+  return results;
+}
+
+function renderResults(answers) {
+  const results = calculateTotals(answers);
+  let html = `<h2>Your Attributes</h2>
+    <div class="results">
+  `;
+  Object.keys(attrKeyMap).forEach(k => {
+    html += `
+      <div>
+        <div class="attr-label">${attrKeyMap[k]}: ${results[k]}%</div>
+        <div class="bar-bg">
+          <div class="bar-fill" style="width:0%" data-value="${results[k]}">${results[k]}%</div>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>
+    <button class="retake-btn" id="retake">Retake Survey</button>
+  `;
+  document.getElementById("app").innerHTML = html;
+  // Animate bars
+  setTimeout(() => {
+    Array.from(document.getElementsByClassName("bar-fill")).forEach(bar => {
+      const value = bar.getAttribute("data-value");
+      bar.style.width = value + "%";
+    });
+  }, 80);
+  document.getElementById("retake").onclick = () => {
+    startSurvey();
+  };
+}
+
+function startSurvey() {
+  renderQuestionnaire({
+    current: 0,
+    answers: getInitialAnswers()
+  });
+}
+
+// Initial render
+document.getElementById("app").innerHTML = `<h1>Attribute Survey</h1>
+  <div style="text-align:center;margin-bottom:1.5em;">Take this 15-question quiz to see your game-like stat bars in <strong>Charisma, Intelligence, Determination, Leadership, Creativity, Critical Thinking, and Emotional Intelligence</strong>!</div>
+  <button class="retake-btn" id="start">Start Survey</button>
+`;
+document.getElementById("start").onclick = startSurvey;
+
+  </script>
+</body>
+</html>
